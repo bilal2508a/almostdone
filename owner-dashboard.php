@@ -147,6 +147,11 @@ include __DIR__ . '/includes/header.php';
                                     <td>
                                         <strong style="font-size:0.9rem;"><?php echo e($b['tenant_name']); ?></strong><br>
                                         <small style="color:#64748b;"><?php echo e($b['tenant_phone'] ?? ''); ?></small>
+                                        <?php if (!empty($b['booking_for']) && $b['booking_for'] === 'other' && !empty($b['guest_name'])): ?>
+                                        <br><span style="display:inline-flex;align-items:center;gap:3px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:999px;padding:1px 7px;font-size:0.72rem;font-weight:600;margin-top:3px;">
+                                            <i class="bi bi-person-badge"></i> For: <?php echo e($b['guest_name']); ?>
+                                        </span>
+                                        <?php endif; ?>
                                     </td>
                                     <td style="font-size:0.9rem;"><?php echo formatDate($b['start_date']); ?> - <?php echo formatDate($b['end_date']); ?></td>
                                     <td style="font-weight:600;color:#0f172a;"><?php echo format_price($b['total_amount']); ?></td>

@@ -60,6 +60,13 @@ include __DIR__ . '/includes/header.php';
                                         <a href="<?php echo url('/property-details.php?id=' . (int)$b['property_id']); ?>" style="color:#0f172a;font-weight:700;text-decoration:none;font-size:1rem;"><?php echo e($b['property_title']); ?></a>
                                         <div style="color:#64748b;font-size:0.85rem;margin-top:0.25rem;"><i class="bi bi-geo-alt"></i> <?php echo e($b['property_city'] ?? ''); ?></div>
                                         <div style="color:#64748b;font-size:0.85rem;margin-top:0.5rem;"><i class="bi bi-calendar"></i> <?php echo formatDate($b['start_date']); ?> - <?php echo formatDate($b['end_date']); ?></div>
+                                        <?php if (!empty($b['booking_for']) && $b['booking_for'] === 'other' && !empty($b['guest_name'])): ?>
+                                        <div style="margin-top:0.4rem;">
+                                            <span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:999px;padding:2px 9px;font-size:0.75rem;font-weight:600;">
+                                                <i class="bi bi-person-badge"></i> For: <?php echo e($b['guest_name']); ?>
+                                            </span>
+                                        </div>
+                                        <?php endif; ?>
                                         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
                                             <strong style="color:#0f172a;"><?php echo format_price($b['total_amount']); ?></strong>
                                             <?php
@@ -120,6 +127,13 @@ include __DIR__ . '/includes/header.php';
                                         <a href="<?php echo url('/property-details.php?id=' . (int)$b['property_id']); ?>" style="color:#0f172a;font-weight:700;text-decoration:none;font-size:1rem;"><?php echo e($b['property_title']); ?></a>
                                         <div style="color:#64748b;font-size:0.85rem;margin-top:0.25rem;"><i class="bi bi-geo-alt"></i> <?php echo e($b['property_city'] ?? ''); ?></div>
                                         <div style="color:#64748b;font-size:0.85rem;margin-top:0.5rem;"><i class="bi bi-calendar"></i> <?php echo formatDate($b['start_date']); ?> - <?php echo formatDate($b['end_date']); ?></div>
+                                        <?php if (!empty($b['booking_for']) && $b['booking_for'] === 'other' && !empty($b['guest_name'])): ?>
+                                        <div style="margin-top:0.4rem;">
+                                            <span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:999px;padding:2px 9px;font-size:0.75rem;font-weight:600;">
+                                                <i class="bi bi-person-badge"></i> For: <?php echo e($b['guest_name']); ?>
+                                            </span>
+                                        </div>
+                                        <?php endif; ?>
                                         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
                                             <strong style="color:#0f172a;"><?php echo format_price($b['total_amount']); ?></strong>
                                             <span class="badge badge-info">Completed</span>
@@ -156,6 +170,13 @@ include __DIR__ . '/includes/header.php';
                                         <a href="<?php echo url('/property-details.php?id=' . (int)$b['property_id']); ?>" style="color:#0f172a;font-weight:700;text-decoration:none;font-size:1rem;"><?php echo e($b['property_title']); ?></a>
                                         <div style="color:#64748b;font-size:0.85rem;margin-top:0.25rem;"><i class="bi bi-geo-alt"></i> <?php echo e($b['property_city'] ?? ''); ?></div>
                                         <div style="color:#64748b;font-size:0.85rem;margin-top:0.5rem;"><i class="bi bi-calendar"></i> <?php echo formatDate($b['start_date']); ?> - <?php echo formatDate($b['end_date']); ?></div>
+                                        <?php if (!empty($b['booking_for']) && $b['booking_for'] === 'other' && !empty($b['guest_name'])): ?>
+                                        <div style="margin-top:0.4rem;">
+                                            <span style="display:inline-flex;align-items:center;gap:4px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:999px;padding:2px 9px;font-size:0.75rem;font-weight:600;">
+                                                <i class="bi bi-person-badge"></i> For: <?php echo e($b['guest_name']); ?>
+                                            </span>
+                                        </div>
+                                        <?php endif; ?>
                                         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem;">
                                             <strong style="color:#0f172a;"><?php echo format_price($b['total_amount']); ?></strong>
                                             <span class="badge badge-error">Cancelled</span>

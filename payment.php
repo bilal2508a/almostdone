@@ -67,6 +67,13 @@ include __DIR__ . '/includes/header.php';
                     <div style="padding:1.5rem;">
                         <h4 style="color:#0f172a;font-weight:700;margin:0 0 0.5rem;"><?php echo e($booking['property_title']); ?></h4>
                         <p style="color:#64748b;font-size:0.9rem;margin:0 0 1rem;"><i class="bi bi-geo-alt"></i> <?php echo e($booking['property_city'] . ', ' . $booking['property_area']); ?></p>
+                        <?php if (!empty($booking['booking_for']) && $booking['booking_for'] === 'other' && !empty($booking['guest_name'])): ?>
+                        <div style="margin-bottom:0.75rem;">
+                            <span style="display:inline-flex;align-items:center;gap:5px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:8px;padding:5px 11px;font-size:0.82rem;font-weight:600;">
+                                <i class="bi bi-person-badge"></i> Booked for: <?php echo e($booking['guest_name']); ?><?php echo !empty($booking['guest_phone']) ? ' &middot; ' . e($booking['guest_phone']) : ''; ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
 
                         <div style="background:#f8fafc;border-radius:12px;padding:1rem;margin-bottom:1rem;">
                             <div style="display:flex;justify-content:space-between;padding:0.4rem 0;">

@@ -32,6 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $bookingMode = $_POST['booking_mode'] ?? 'month';
     $numMonths = (int)($_POST['num_months'] ?? 1);
     $notes = trim($_POST['notes'] ?? '');
+    $bookingFor  = in_array($_POST['booking_for'] ?? 'self', ['self','other']) ? $_POST['booking_for'] : 'self';
+    $guestName   = trim($_POST['guest_name']  ?? '');
+    $guestEmail  = trim($_POST['guest_email'] ?? '');
+    $guestPhone  = trim($_POST['guest_phone'] ?? '');
 
     $effectiveMode = $bookingMode;
     if ($period === 'per_day') $effectiveMode = 'day';
@@ -47,6 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('error', 'Check-in date must be at least tomorrow.');
     } elseif ($effectiveMode === 'day' && $endDate && strtotime($endDate) < strtotime($startDate)) {
         flash('error', 'End date must be after start date.');
+    } elseif ($bookingFor === 'other' && empty($guestName)) {
+        flash('error', 'Please enter the guest's full name.');
+    } elseif ($bookingFor === 'other' && !empty($guestEmail) && !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+        flash('error', 'Please enter a valid email address for the guest.');
     } else {
         if ($effectiveMode === 'month') {
             $numMonths = max(1, $numMonths);
@@ -67,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('/property-details.php?id=' . $propertyId);
         }
 
-        $stmt = db()->prepare('INSERT INTO bookings (property_id, tenant_id, start_date, end_date, total_amount, notes) VALUES (?, ?, ?, ?, ?, ?)');
-        $result = $stmt->execute([$propertyId, $user['id'], $startDate, $endDate, $totalAmount, $notes]);
+        $stmt = db()->prepare('INSERT INTO bookings (property_id, tenant_id, start_date, end_date, total_amount, notes, booking_for, guest_name, guest_email, guest_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+        $result = $stmt->execute([$propertyId, $user['id'], $startDate, $endDate, $totalAmount, $notes, $bookingFor, $bookingFor === 'other' ? $guestName : null, $bookingFor === 'other' ? ($guestEmail ?: null) : null, $bookingFor === 'other' ? ($guestPhone ?: null) : null]);
 
         if ($result) {
             $bookingId = (int)db()->lastInsertId();
@@ -235,6 +243,61 @@ require_once __DIR__ . '/includes/header.php';
                                 </div>
                             </div>
 
+                            <!-- Who is this booking for? -->
+                            <div class="mt-4">
+                                <label class="form-label-mh" style="font-weight:700;">Who is this booking for? <span style="color:var(--error-500);">*</span></label>
+                                <div class="d-flex gap-3 mt-2" id="bookingForToggle">
+                                    <label class="booking-for-option active" id="forSelfLabel" style="flex:1;cursor:pointer;border-radius:var(--radius);border:2px solid var(--primary-500);padding:0.9rem 1rem;display:flex;align-items:center;gap:0.75rem;background:var(--primary-50);transition:all 0.18s;">
+                                        <input type="radio" name="booking_for" value="self" checked onchange="toggleBookingFor('self')" style="display:none;">
+                                        <span style="width:36px;height:36px;border-radius:50%;background:var(--primary-600);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                            <i class="bi bi-person-fill" style="color:#fff;font-size:1rem;"></i>
+                                        </span>
+                                        <div>
+                                            <div style="font-weight:700;color:var(--slate-900);font-size:0.95rem;">For Myself</div>
+                                            <div style="font-size:0.78rem;color:var(--slate-500);">I'll be staying here</div>
+                                        </div>
+                                        <span class="for-check-icon ms-auto" style="color:var(--primary-600);font-size:1.1rem;"><i class="bi bi-check-circle-fill"></i></span>
+                                    </label>
+                                    <label class="booking-for-option" id="forOtherLabel" style="flex:1;cursor:pointer;border-radius:var(--radius);border:2px solid var(--slate-200);padding:0.9rem 1rem;display:flex;align-items:center;gap:0.75rem;background:#fff;transition:all 0.18s;">
+                                        <input type="radio" name="booking_for" value="other" onchange="toggleBookingFor('other')" style="display:none;">
+                                        <span style="width:36px;height:36px;border-radius:50%;background:var(--slate-200);display:flex;align-items:center;justify-content:center;flex-shrink:0;" id="forOtherIcon">
+                                            <i class="bi bi-people-fill" style="color:var(--slate-500);font-size:1rem;"></i>
+                                        </span>
+                                        <div>
+                                            <div style="font-weight:700;color:var(--slate-900);font-size:0.95rem;">For Someone Else</div>
+                                            <div style="font-size:0.78rem;color:var(--slate-500);">Booking on their behalf</div>
+                                        </div>
+                                        <span class="for-check-icon ms-auto" style="color:var(--slate-300);font-size:1.1rem;"><i class="bi bi-circle"></i></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Guest details (shown when "for someone else") -->
+                            <div id="guestDetailsSection" style="display:none;" class="mt-3">
+                                <div style="background:linear-gradient(135deg,#f0f9ff,#ecfdf5);border:1px solid #bae6fd;border-radius:var(--radius);padding:1.25rem;">
+                                    <div style="font-weight:700;color:var(--slate-800);font-size:0.92rem;margin-bottom:1rem;">
+                                        <i class="bi bi-person-badge" style="color:#0284c7;"></i> Guest Information
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-12">
+                                            <label class="form-label-mh">Guest Full Name <span style="color:var(--error-500);">*</span></label>
+                                            <input type="text" id="guest_name" name="guest_name" placeholder="e.g. Ahmed Ali" class="form-control-mh" autocomplete="off">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label-mh">Guest Email <span style="color:var(--slate-400);font-weight:400;">(optional)</span></label>
+                                            <input type="email" id="guest_email" name="guest_email" placeholder="guest@email.com" class="form-control-mh" autocomplete="off">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label-mh">Guest Phone <span style="color:var(--slate-400);font-weight:400;">(optional)</span></label>
+                                            <input type="tel" id="guest_phone" name="guest_phone" placeholder="+92 300 1234567" class="form-control-mh" autocomplete="off">
+                                        </div>
+                                    </div>
+                                    <div style="margin-top:0.75rem;padding:0.6rem 0.9rem;background:rgba(2,132,199,0.08);border-radius:8px;font-size:0.8rem;color:#0369a1;">
+                                        <i class="bi bi-info-circle"></i> The booking will appear in your account. You are responsible for the stay.
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="mt-3">
                                 <label class="form-label-mh">Notes <span style="color:var(--slate-400);font-weight:400;">(optional)</span></label>
                                 <textarea id="notes" name="notes" rows="3" placeholder="Any special requests..." class="form-control-mh"></textarea>
@@ -287,6 +350,42 @@ require_once __DIR__ . '/includes/header.php';
 </div>
 
 <script>
+function toggleBookingFor(val) {
+    var selfLabel  = document.getElementById('forSelfLabel');
+    var otherLabel = document.getElementById('forOtherLabel');
+    var guestSec   = document.getElementById('guestDetailsSection');
+    var otherIcon  = document.getElementById('forOtherIcon');
+    var nameInput  = document.getElementById('guest_name');
+
+    if (val === 'other') {
+        otherLabel.style.borderColor = 'var(--primary-500)';
+        otherLabel.style.background  = 'var(--primary-50)';
+        otherLabel.querySelector('.for-check-icon').innerHTML = '<i class="bi bi-check-circle-fill" style="color:var(--primary-600);"></i>';
+        otherIcon.style.background = 'var(--primary-600)';
+        otherIcon.querySelector('i').style.color = '#fff';
+
+        selfLabel.style.borderColor = 'var(--slate-200)';
+        selfLabel.style.background  = '#fff';
+        selfLabel.querySelector('.for-check-icon').innerHTML = '<i class="bi bi-circle" style="color:var(--slate-300);"></i>';
+
+        guestSec.style.display = 'block';
+        if (nameInput) nameInput.setAttribute('required', 'required');
+    } else {
+        selfLabel.style.borderColor = 'var(--primary-500)';
+        selfLabel.style.background  = 'var(--primary-50)';
+        selfLabel.querySelector('.for-check-icon').innerHTML = '<i class="bi bi-check-circle-fill" style="color:var(--primary-600);"></i>';
+
+        otherLabel.style.borderColor = 'var(--slate-200)';
+        otherLabel.style.background  = '#fff';
+        otherLabel.querySelector('.for-check-icon').innerHTML = '<i class="bi bi-circle" style="color:var(--slate-300);"></i>';
+        otherIcon.style.background = 'var(--slate-200)';
+        otherIcon.querySelector('i').style.color = 'var(--slate-500)';
+
+        guestSec.style.display = 'none';
+        if (nameInput) nameInput.removeAttribute('required');
+    }
+}
+
 var price = <?php echo $price; ?>;
 var pricePerDay = <?php echo $pricePerDay !== null ? $pricePerDay : 'null'; ?>;
 var period = '<?php echo $period; ?>';
