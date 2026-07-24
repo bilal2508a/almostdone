@@ -55,6 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('error', 'Please enter the guest name.');
     } elseif ($bookingFor === 'other' && !empty($guestEmail) && !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
         flash('error', 'Please enter a valid email address for the guest.');
+    } elseif ($bookingFor === 'other' && !empty($guestPhone) && !preg_match('/^03[0-9]{9}$/', $guestPhone)) {
+        flash('error', 'Guest phone must start with 03 and be 11 digits (e.g. 03001234567).');
     } else {
         if ($effectiveMode === 'month') {
             $numMonths = max(1, $numMonths);
@@ -289,7 +291,7 @@ require_once __DIR__ . '/includes/header.php';
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label-mh">Guest Phone <span style="color:var(--slate-400);font-weight:400;">(optional)</span></label>
-                                            <input type="tel" id="guest_phone" name="guest_phone" placeholder="+92 300 1234567" class="form-control-mh" autocomplete="off">
+                                            <input type="tel" id="guest_phone" name="guest_phone" placeholder="03XXXXXXXXX" maxlength="11" pattern="03[0-9]{9}" inputmode="numeric" class="form-control-mh" autocomplete="off">
                                         </div>
                                     </div>
                                     <div style="margin-top:0.75rem;padding:0.6rem 0.9rem;background:rgba(2,132,199,0.08);border-radius:8px;font-size:0.8rem;color:#0369a1;">
@@ -384,6 +386,16 @@ function toggleBookingFor(val) {
         guestSec.style.display = 'none';
         if (nameInput) nameInput.removeAttribute('required');
     }
+}
+
+var guestPhoneEl = document.getElementById('guest_phone');
+if (guestPhoneEl) {
+    guestPhoneEl.addEventListener('input', function() {
+        var v = this.value.replace(/\D/g, '').slice(0, 11);
+        if (v.length >= 1 && v[0] !== '0') v = '';
+        if (v.length >= 2 && v[1] !== '3') v = v[0];
+        this.value = v;
+    });
 }
 
 var price = <?php echo $price; ?>;
