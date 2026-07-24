@@ -220,7 +220,10 @@ require_once __DIR__ . '/includes/header.php';
                 <h3 style="font-size:1.25rem;font-weight:700;color:var(--slate-900);margin-bottom:1rem;letter-spacing:-0.01em;">
                     <i class="bi bi-map" style="color:var(--primary-600);"></i> Location & Nearby
                 </h3>
-                <div id="propertyMap" style="height:420px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--slate-200);"></div>
+                <div style="border:1px solid var(--slate-200);border-radius:var(--radius);overflow:hidden;">
+                    <div id="mapFilterBar" class="map-filter-bar"></div>
+                    <div id="propertyMap" style="height:410px;"></div>
+                </div>
             </div>
 
             <!-- Reviews -->
@@ -429,104 +432,348 @@ function toggleWishlist(event, propertyId) {
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-.nearby-label {
-    background: rgba(255,255,255,0.95);
-    border: none;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-    border-radius: 8px;
-    padding: 3px 8px;
+/* Map container */
+#propertyMap { cursor: grab; }
+#propertyMap:active { cursor: grabbing; }
+
+/* Category filter pills */
+.map-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 14px;
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    border-radius: var(--radius) var(--radius) 0 0;
+}
+.map-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.18s;
+    user-select: none;
+    background: #f1f5f9;
+    color: #64748b;
+}
+.map-filter-pill.active {
+    color: #fff;
+    border-color: transparent;
+}
+.map-filter-pill:hover { filter: brightness(0.93); }
+.map-pill-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Leaflet popup override */
+.leaflet-popup-content-wrapper {
+    border-radius: 10px !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.18) !important;
+    padding: 0 !important;
+    overflow: hidden;
+}
+.leaflet-popup-content {
+    margin: 0 !important;
+    font-family: inherit !important;
+    width: auto !important;
+    min-width: 180px;
+}
+.leaflet-popup-tip-container { display: none; }
+.map-popup {
+    padding: 12px 14px;
+    font-size: 13px;
+}
+.map-popup-title {
+    font-weight: 700;
+    color: #1e293b;
+    font-size: 13.5px;
+    margin-bottom: 3px;
+    line-height: 1.3;
+}
+.map-popup-cat {
     font-size: 11px;
     font-weight: 600;
-    white-space: nowrap;
-    pointer-events: none;
-    line-height: 1.4;
-    display: flex;
-    align-items: center;
-    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    color: #fff;
+    display: inline-block;
 }
-.property-pin {
+
+/* SVG pin icons */
+.map-pin-wrap {
     display: flex;
     flex-direction: column;
     align-items: center;
+    cursor: pointer;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25));
+    transition: filter 0.2s;
 }
-.property-pin-bubble {
+.map-pin-wrap:hover { filter: drop-shadow(0 5px 10px rgba(0,0,0,0.35)) brightness(1.08); }
+.map-pin-circle {
+    width: 34px; height: 34px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex; align-items: center; justify-content: center;
+    border: 2.5px solid rgba(255,255,255,0.75);
+}
+.map-pin-circle svg, .map-pin-circle span {
+    transform: rotate(45deg);
+    display: block;
+}
+.map-pin-circle span { font-size: 15px; line-height: 1; }
+
+/* Property pin */
+.prop-pin-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.35));
+}
+.prop-pin-badge {
     background: #1e293b;
     color: #fff;
-    border-radius: 10px;
+    border-radius: 8px;
     padding: 5px 10px;
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
-    max-width: 180px;
+    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
+    border: 2px solid rgba(255,255,255,0.25);
 }
-.property-pin-arrow {
+.prop-pin-stem {
     width: 0; height: 0;
     border-left: 7px solid transparent;
     border-right: 7px solid transparent;
-    border-top: 9px solid #1e293b;
+    border-top: 10px solid #1e293b;
+}
+
+/* Map legend */
+#mapLegend {
+    background: rgba(255,255,255,0.96);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    min-width: 110px;
+}
+#mapLegend .leg-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: #334155;
+}
+#mapLegend .leg-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 </style>
 <script>
 (function() {
-    var address = <?php echo json_encode($property['address'] . ', ' . $property['city']); ?>;
-    var city    = <?php echo json_encode($property['city']); ?>;
+    var address  = <?php echo json_encode($property['address'] . ', ' . $property['city']); ?>;
+    var city     = <?php echo json_encode($property['city']); ?>;
     var propName = <?php echo json_encode($property['title']); ?>;
 
-    var map = L.map('propertyMap', { zoomControl: true }).setView([31.5497, 74.3436], 14);
+    /* ── Category definitions ──────────────────────────────────────────── */
+    var catInfo = {
+        hospital:    { emoji:'🏥', color:'#ef4444', label:'Hospital',    icon:'h' },
+        clinic:      { emoji:'🏥', color:'#f87171', label:'Clinic',      icon:'h' },
+        hotel:       { emoji:'🏨', color:'#0ea5e9', label:'Hotel',       icon:'b' },
+        restaurant:  { emoji:'🍽️', color:'#f59e0b', label:'Restaurant',  icon:'r' },
+        school:      { emoji:'🏫', color:'#8b5cf6', label:'School',      icon:'s' },
+        bank:        { emoji:'🏦', color:'#10b981', label:'Bank',        icon:'k' },
+        supermarket: { emoji:'🛒', color:'#ec4899', label:'Supermarket', icon:'m' },
+        pharmacy:    { emoji:'💊', color:'#e11d48', label:'Pharmacy',    icon:'p' },
+        mosque:      { emoji:'🕌', color:'#64748b', label:'Mosque',      icon:'q' },
+        fuel:        { emoji:'⛽', color:'#f97316', label:'Fuel',        icon:'f' },
+        bus_station: { emoji:'🚌', color:'#3b82f6', label:'Bus Stop',    icon:'u' }
+    };
+
+    /* SVG paths for each icon type (compact, 24x24 viewBox) */
+    var iconSvg = {
+        h: '<path d="M12 2a5 5 0 100 10A5 5 0 0012 2zm1 6h-2V6H9V8H7v2h2v2h2v-2h2V8z" fill="#fff"/>',  /* hospital cross */
+        b: '<path d="M3 8l9-6 9 6v12H3V8zm7 4h4v6h-4v-6z" fill="none" stroke="#fff" stroke-width="1.5"/>', /* hotel */
+        r: '<path d="M8 4v4M12 4v4M16 4v4M7 8c0 3.3 2 5 5 5s5-1.7 5-5H7zm5 5v7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>', /* fork/spoon */
+        s: '<path d="M4 20V10l8-6 8 6v10M8 20v-6h8v6" fill="none" stroke="#fff" stroke-width="1.5"/>', /* school */
+        k: '<rect x="5" y="6" width="14" height="12" rx="2" fill="none" stroke="#fff" stroke-width="1.5"/><path d="M5 10h14M9 10v8" stroke="#fff" stroke-width="1.5"/>', /* bank */
+        m: '<path d="M6 2l2 5h8l2-5M6 7v13h12V7M10 11h4" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>', /* shopping cart */
+        p: '<path d="M12 4v16M4 12h16" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>', /* pharmacy cross */
+        q: '<path d="M12 3L3 9v4h18V9L12 3zm0 0v6M8 13v7M16 13v7M4 20h16" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>', /* mosque */
+        f: '<path d="M9 2v8l-3 4h12l-3-4V2M9 2h6M12 14v8" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>', /* fuel */
+        u: '<rect x="2" y="8" width="20" height="10" rx="3" fill="none" stroke="#fff" stroke-width="1.5"/><circle cx="7" cy="20" r="2" fill="#fff"/><circle cx="17" cy="20" r="2" fill="#fff"/><path d="M6 8V5M18 8V5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>' /* bus */
+    };
+
+    /* ── Map init ─────────────────────────────────────────────────────── */
+    var map = L.map('propertyMap', {
+        zoomControl: false,
+        scrollWheelZoom: true
+    }).setView([31.5497, 74.3436], 14);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>',
         maxZoom: 19
     }).addTo(map);
 
-    var catInfo = {
-        hospital:    { emoji: '🏥', color: '#ef4444', label: 'Hospital' },
-        clinic:      { emoji: '🏥', color: '#ef4444', label: 'Clinic' },
-        hotel:       { emoji: '🏨', color: '#0ea5e9', label: 'Hotel' },
-        restaurant:  { emoji: '🍽️', color: '#f59e0b', label: 'Restaurant' },
-        school:      { emoji: '🏫', color: '#8b5cf6', label: 'School' },
-        bank:        { emoji: '🏦', color: '#10b981', label: 'Bank' },
-        supermarket: { emoji: '🛒', color: '#ec4899', label: 'Supermarket' },
-        pharmacy:    { emoji: '💊', color: '#ef4444', label: 'Pharmacy' },
-        mosque:      { emoji: '🕌', color: '#64748b', label: 'Mosque' },
-        fuel:        { emoji: '⛽', color: '#f97316', label: 'Fuel' },
-        bus_station: { emoji: '🚌', color: '#3b82f6', label: 'Bus Stop' }
+    /* Legend control */
+    var legendControl = L.control({ position: 'bottomleft' });
+    legendControl.onAdd = function() {
+        var div = L.DomUtil.create('div', '');
+        div.id = 'mapLegend';
+        div.innerHTML = '<div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Nearby Places</div>';
+        return div;
     };
+    legendControl.addTo(map);
 
-    function makeNearbyIcon(info, name) {
-        var label = name && name !== info.label ? name : info.label;
-        if (label.length > 22) label = label.slice(0, 20) + '…';
-        var html = '<div class="nearby-label" style="border-left:3px solid ' + info.color + ';">' +
-            '<span>' + info.emoji + '</span>' +
-            '<span style="color:' + info.color + ';">' + label + '</span>' +
-            '</div>';
-        return L.divIcon({ html: html, className: '', iconAnchor: [0, 0] });
+    /* ── Icon factories ───────────────────────────────────────────────── */
+    function makeNearbyIcon(cat, name) {
+        var info = catInfo[cat];
+        var svg  = iconSvg[info.icon] || iconSvg.h;
+        var html = '<div class="map-pin-wrap">' +
+            '<div class="map-pin-circle" style="background:' + info.color + ';">' +
+            '<span><svg viewBox="0 0 24 24" width="17" height="17" xmlns="http://www.w3.org/2000/svg">' + svg + '</svg></span>' +
+            '</div></div>';
+        return L.divIcon({
+            html: html,
+            className: '',
+            iconAnchor: [17, 34],
+            popupAnchor: [0, -36]
+        });
     }
 
     function makePropIcon(title) {
-        var short = title.length > 26 ? title.slice(0, 24) + '…' : title;
-        var html = '<div class="property-pin"><div class="property-pin-bubble">📍 ' + short + '</div><div class="property-pin-arrow"></div></div>';
-        return L.divIcon({ html: html, className: '', iconAnchor: [90, 35] });
+        var short = title.length > 28 ? title.slice(0, 26) + '…' : title;
+        var html = '<div class="prop-pin-wrap">' +
+            '<div class="prop-pin-badge">📍 ' + short + '</div>' +
+            '<div class="prop-pin-stem"></div></div>';
+        return L.divIcon({
+            html: html,
+            className: '',
+            iconAnchor: [70, 42],
+            popupAnchor: [0, -44]
+        });
     }
 
-    function geocode(query, callback) {
-        fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=' + encodeURIComponent(query))
-            .then(function(r) { return r.json(); })
-            .then(function(d) { callback(d && d.length ? d[0] : null); })
-            .catch(function() { callback(null); });
+    /* ── State ────────────────────────────────────────────────────────── */
+    var allMarkers   = {};   /* cat → [L.Marker] */
+    var activeFilter = null; /* null = all visible */
+    var legendEl     = document.getElementById('mapLegend');
+
+    /* ── Marker click → zoom in ───────────────────────────────────────── */
+    function onMarkerClick(marker, cat, name) {
+        var ll = marker.getLatLng();
+        map.flyTo(ll, Math.max(map.getZoom(), 17), { animate: true, duration: 0.8 });
+        var info = catInfo[cat];
+        var popup = L.popup({ closeButton: true, maxWidth: 260, className: '' })
+            .setLatLng(ll)
+            .setContent(
+                '<div class="map-popup">' +
+                '<div class="map-popup-title">' + escHtml(name) + '</div>' +
+                '<span class="map-popup-cat" style="background:' + info.color + ';">' + info.emoji + ' ' + info.label + '</span>' +
+                '</div>'
+            );
+        popup.openOn(map);
     }
 
+    function onPropClick(marker, title) {
+        var ll = marker.getLatLng();
+        map.flyTo(ll, 17, { animate: true, duration: 0.8 });
+        var popup = L.popup({ closeButton: true, maxWidth: 280 })
+            .setLatLng(ll)
+            .setContent(
+                '<div class="map-popup">' +
+                '<div class="map-popup-title">📍 ' + escHtml(title) + '</div>' +
+                '<span style="font-size:11.5px;color:#64748b;">This property</span>' +
+                '</div>'
+            );
+        popup.openOn(map);
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /* ── Filter pills ─────────────────────────────────────────────────── */
+    function buildFilterBar(presentCats) {
+        var bar = document.getElementById('mapFilterBar');
+        if (!bar) return;
+        bar.innerHTML = '';
+
+        /* "All" pill */
+        var allPill = document.createElement('span');
+        allPill.className = 'map-filter-pill active';
+        allPill.style.background = '#1e293b';
+        allPill.dataset.cat = '';
+        allPill.innerHTML = '<span class="map-pill-dot" style="background:#fff;"></span> All';
+        bar.appendChild(allPill);
+
+        presentCats.forEach(function(cat) {
+            var info = catInfo[cat];
+            if (!info) return;
+            var pill = document.createElement('span');
+            pill.className = 'map-filter-pill';
+            pill.dataset.cat = cat;
+            pill.innerHTML = '<span class="map-pill-dot" style="background:' + info.color + ';"></span> ' + info.label;
+            bar.appendChild(pill);
+        });
+
+        bar.addEventListener('click', function(e) {
+            var pill = e.target.closest('.map-filter-pill');
+            if (!pill) return;
+            var cat = pill.dataset.cat;
+            bar.querySelectorAll('.map-filter-pill').forEach(function(p) {
+                p.classList.remove('active');
+                p.style.background = '#f1f5f9';
+                p.style.color = '#64748b';
+            });
+            pill.classList.add('active');
+            if (cat === '') {
+                pill.style.background = '#1e293b';
+                pill.style.color = '#fff';
+            } else {
+                pill.style.background = catInfo[cat].color;
+                pill.style.color = '#fff';
+            }
+            setFilter(cat === '' ? null : cat);
+        });
+    }
+
+    function setFilter(cat) {
+        activeFilter = cat;
+        Object.keys(allMarkers).forEach(function(c) {
+            allMarkers[c].forEach(function(m) {
+                if (cat === null || c === cat) {
+                    if (!map.hasLayer(m)) map.addLayer(m);
+                } else {
+                    if (map.hasLayer(m)) map.removeLayer(m);
+                }
+            });
+        });
+    }
+
+    /* ── Geocode + init ───────────────────────────────────────────────── */
     function initMap(lat, lon) {
-        map.setView([lat, lon], 15);
-        L.marker([lat, lon], { icon: makePropIcon(propName) }).addTo(map);
+        map.flyTo([lat, lon], 15, { animate: false });
+        var propMarker = L.marker([lat, lon], { icon: makePropIcon(propName), zIndexOffset: 1000 }).addTo(map);
+        propMarker.on('click', function() { onPropClick(propMarker, propName); });
         loadNearby(lat, lon);
     }
 
     function loadNearby(lat, lon) {
         var r = 2000;
-        var q = '[out:json][timeout:20];(' +
+        var q = '[out:json][timeout:25];(' +
             'node["amenity"="hospital"](around:' + r + ',' + lat + ',' + lon + ');' +
             'node["amenity"="clinic"](around:' + r + ',' + lat + ',' + lon + ');' +
             'node["amenity"="doctors"](around:' + r + ',' + lat + ',' + lon + ');' +
@@ -567,36 +814,64 @@ function toggleWishlist(event, propertyId) {
 
     function getCategory(el) {
         var t = el.tags || {};
-        if (t.amenity === 'hospital') return 'hospital';
-        if (t.amenity === 'clinic' || t.amenity === 'doctors') return 'clinic';
-        if (t.tourism === 'hotel') return 'hotel';
-        if (t.amenity === 'restaurant') return 'restaurant';
-        if (t.amenity === 'school') return 'school';
-        if (t.amenity === 'bank') return 'bank';
-        if (t.shop === 'supermarket') return 'supermarket';
-        if (t.amenity === 'pharmacy') return 'pharmacy';
-        if (t.amenity === 'place_of_worship') return 'mosque';
-        if (t.amenity === 'fuel') return 'fuel';
-        if (t.amenity === 'bus_station') return 'bus_station';
+        if (t.amenity === 'hospital')                            return 'hospital';
+        if (t.amenity === 'clinic' || t.amenity === 'doctors')  return 'clinic';
+        if (t.tourism === 'hotel')                               return 'hotel';
+        if (t.amenity === 'restaurant')                          return 'restaurant';
+        if (t.amenity === 'school')                              return 'school';
+        if (t.amenity === 'bank')                                return 'bank';
+        if (t.shop === 'supermarket')                            return 'supermarket';
+        if (t.amenity === 'pharmacy')                            return 'pharmacy';
+        if (t.amenity === 'place_of_worship')                    return 'mosque';
+        if (t.amenity === 'fuel')                                return 'fuel';
+        if (t.amenity === 'bus_station')                         return 'bus_station';
         return null;
     }
 
     function renderMarkers(elements, propLat, propLon) {
         var seen = {};
+        var presentCats = [];
+
         elements.forEach(function(el) {
             var cat = getCategory(el);
             if (!cat || !el.lat || !el.lon) return;
-            if (!seen[cat]) seen[cat] = 0;
-            if (seen[cat] >= 3) return;
+            if (!seen[cat]) { seen[cat] = 0; presentCats.push(cat); }
+            if (seen[cat] >= 4) return;
             seen[cat]++;
-            var info = catInfo[cat];
-            var name = (el.tags && el.tags.name) ? el.tags.name : info.label;
-            var icon = makeNearbyIcon(info, name);
-            L.marker([el.lat, el.lon], { icon: icon }).addTo(map);
+
+            var name = (el.tags && el.tags.name) ? el.tags.name : catInfo[cat].label;
+            var marker = L.marker([el.lat, el.lon], { icon: makeNearbyIcon(cat, name) }).addTo(map);
+
+            /* Click → zoom + popup */
+            (function(m, c, n) {
+                m.on('click', function() { onMarkerClick(m, c, n); });
+            })(marker, cat, name);
+
+            if (!allMarkers[cat]) allMarkers[cat] = [];
+            allMarkers[cat].push(marker);
         });
+
+        /* Build legend */
+        if (legendEl) {
+            var rows = '';
+            presentCats.forEach(function(cat) {
+                var info = catInfo[cat];
+                rows += '<div class="leg-row"><span class="leg-dot" style="background:' + info.color + ';"></span>' + info.emoji + ' ' + info.label + '</div>';
+            });
+            legendEl.innerHTML += rows;
+        }
+
+        buildFilterBar(presentCats);
     }
 
-    /* Geocode: try full address first, fall back to city only */
+    /* Geocode: try full address → city only → Lahore fallback */
+    function geocode(query, callback) {
+        fetch('https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=' + encodeURIComponent(query))
+            .then(function(r) { return r.json(); })
+            .then(function(d) { callback(d && d.length ? d[0] : null); })
+            .catch(function() { callback(null); });
+    }
+
     geocode(address, function(result) {
         if (result) {
             initMap(parseFloat(result.lat), parseFloat(result.lon));
@@ -605,7 +880,6 @@ function toggleWishlist(event, propertyId) {
                 if (r2) {
                     initMap(parseFloat(r2.lat), parseFloat(r2.lon));
                 } else {
-                    /* Final fallback: Lahore center */
                     initMap(31.5497, 74.3436);
                 }
             });
