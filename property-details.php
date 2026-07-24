@@ -13,6 +13,18 @@ if (!$property) {
 }
 
 $images = get_property_images($id);
+// If no images in DB, generate a fallback based on property type
+if (empty($images)) {
+    $fallbackMap = [
+        'apartment' => 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800',
+        'house'     => 'https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&w=800',
+        'villa'     => 'https://images.pexels.com/photos/1643383/pexels-photo-1643383.jpeg?auto=compress&cs=tinysrgb&w=800',
+        'studio'    => 'https://images.pexels.com/photos/3935350/pexels-photo-3935350.jpeg?auto=compress&cs=tinysrgb&w=800',
+        'room'      => 'https://images.pexels.com/photos/1743229/pexels-photo-1743229.jpeg?auto=compress&cs=tinysrgb&w=800',
+    ];
+    $fallbackImg = $fallbackMap[$property['property_type']] ?? 'https://images.pexels.com/photos/1571460/pexels-photo-1571460.jpeg?auto=compress&cs=tinysrgb&w=800';
+    $images = [['id' => 0, 'property_id' => $id, 'image_path' => $fallbackImg, 'is_primary' => 1, 'sort_order' => 0]];
+}
 $reviews = get_reviews($id);
 $ratingData = get_avg_rating($id);
 $avgRating = $ratingData['avg_rating'] ? round($ratingData['avg_rating'], 1) : 0;
