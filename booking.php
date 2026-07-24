@@ -53,9 +53,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('error', 'End date must be after start date.');
     } elseif ($bookingFor === 'other' && empty($guestName)) {
         flash('error', 'Please enter the guest name.');
-    } elseif ($bookingFor === 'other' && !empty($guestEmail) && !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
-        flash('error', 'Please enter a valid email address for the guest.');
-    } elseif ($bookingFor === 'other' && !empty($guestPhone) && !preg_match('/^03[0-9]{9}$/', $guestPhone)) {
+    } elseif ($bookingFor === 'other' && empty($guestEmail)) {
+        flash('error', 'Please enter the guest email address.');
+    } elseif ($bookingFor === 'other' && !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
+        flash('error', 'Guest email must contain @ and be a valid email address.');
+    } elseif ($bookingFor === 'other' && empty($guestPhone)) {
+        flash('error', 'Please enter the guest phone number.');
+    } elseif ($bookingFor === 'other' && !preg_match('/^03[0-9]{9}$/', $guestPhone)) {
         flash('error', 'Guest phone must start with 03 and be 11 digits (e.g. 03001234567).');
     } else {
         if ($effectiveMode === 'month') {
@@ -286,12 +290,12 @@ require_once __DIR__ . '/includes/header.php';
                                             <input type="text" id="guest_name" name="guest_name" placeholder="e.g. Ahmed Ali" class="form-control-mh" autocomplete="off">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label-mh">Guest Email <span style="color:var(--slate-400);font-weight:400;">(optional)</span></label>
-                                            <input type="email" id="guest_email" name="guest_email" placeholder="guest@email.com" class="form-control-mh" autocomplete="off">
+                                            <label class="form-label-mh">Guest Email <span style="color:var(--error-500);">*</span></label>
+                                            <input type="email" id="guest_email" name="guest_email" placeholder="guest@email.com" required class="form-control-mh" autocomplete="off">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label-mh">Guest Phone <span style="color:var(--slate-400);font-weight:400;">(optional)</span></label>
-                                            <input type="tel" id="guest_phone" name="guest_phone" placeholder="03XXXXXXXXX" maxlength="11" pattern="03[0-9]{9}" inputmode="numeric" class="form-control-mh" autocomplete="off">
+                                            <label class="form-label-mh">Guest Phone <span style="color:var(--error-500);">*</span></label>
+                                            <input type="tel" id="guest_phone" name="guest_phone" placeholder="03XXXXXXXXX" maxlength="11" pattern="03[0-9]{9}" inputmode="numeric" required class="form-control-mh" autocomplete="off">
                                         </div>
                                     </div>
                                     <div style="margin-top:0.75rem;padding:0.6rem 0.9rem;background:rgba(2,132,199,0.08);border-radius:8px;font-size:0.8rem;color:#0369a1;">
@@ -372,6 +376,10 @@ function toggleBookingFor(val) {
 
         guestSec.style.display = 'block';
         if (nameInput) nameInput.setAttribute('required', 'required');
+        var emailInput = document.getElementById('guest_email');
+        var phoneInput = document.getElementById('guest_phone');
+        if (emailInput) emailInput.setAttribute('required', 'required');
+        if (phoneInput) phoneInput.setAttribute('required', 'required');
     } else {
         selfLabel.style.borderColor = 'var(--primary-500)';
         selfLabel.style.background  = 'var(--primary-50)';
@@ -385,6 +393,10 @@ function toggleBookingFor(val) {
 
         guestSec.style.display = 'none';
         if (nameInput) nameInput.removeAttribute('required');
+        var emailInput2 = document.getElementById('guest_email');
+        var phoneInput2 = document.getElementById('guest_phone');
+        if (emailInput2) emailInput2.removeAttribute('required');
+        if (phoneInput2) phoneInput2.removeAttribute('required');
     }
 }
 
