@@ -155,7 +155,7 @@ function get_user_properties($ownerId) {
 }
 
 function get_user_bookings($userId) {
-    $stmt = db()->prepare('SELECT b.*, p.title as property_title, (SELECT image_path FROM property_images WHERE property_id = p.id ORDER BY is_primary DESC, sort_order ASC LIMIT 1) as primary_image FROM bookings b JOIN properties p ON b.property_id = p.id WHERE b.tenant_id = ? ORDER BY b.created_at DESC');
+    $stmt = db()->prepare('SELECT b.*, p.title as property_title, p.city as property_city, (SELECT image_path FROM property_images WHERE property_id = p.id ORDER BY is_primary DESC, sort_order ASC LIMIT 1) as primary_image FROM bookings b JOIN properties p ON b.property_id = p.id WHERE b.tenant_id = ? ORDER BY b.created_at DESC');
     $stmt->bind_param('i', $userId);
     $stmt->execute();
     return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);

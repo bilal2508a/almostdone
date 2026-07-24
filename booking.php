@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($effectiveMode === 'day' && $endDate && strtotime($endDate) < strtotime($startDate)) {
         flash('error', 'End date must be after start date.');
     } elseif ($bookingFor === 'other' && empty($guestName)) {
-        flash('error', 'Please enter the guest's full name.');
+        flash('error', 'Please enter the guest name.');
     } elseif ($bookingFor === 'other' && !empty($guestEmail) && !filter_var($guestEmail, FILTER_VALIDATE_EMAIL)) {
         flash('error', 'Please enter a valid email address for the guest.');
     } else {
