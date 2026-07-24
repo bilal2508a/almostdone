@@ -43,6 +43,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('error', 'Please enter at least 1 month.');
     } elseif ($effectiveMode === 'day' && !$endDate) {
         flash('error', 'Please select an end date.');
+    } elseif (strtotime($startDate) < strtotime(date('Y-m-d', strtotime('+1 day')))) {
+        flash('error', 'Check-in date must be at least tomorrow.');
     } elseif ($effectiveMode === 'day' && $endDate && strtotime($endDate) < strtotime($startDate)) {
         flash('error', 'End date must be after start date.');
     } else {
@@ -211,7 +213,7 @@ require_once __DIR__ . '/includes/header.php';
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label-mh">Start Date <span style="color:var(--error-500);">*</span></label>
-                                        <input type="date" id="start_date" name="start_date" required onchange="updateTotal()" class="form-control-mh">
+                                        <input type="date" id="start_date" name="start_date" required onchange="updateTotal()" class="form-control-mh" min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label-mh">Number of Months <span style="color:var(--error-500);">*</span></label>
@@ -224,11 +226,11 @@ require_once __DIR__ . '/includes/header.php';
                                 <div class="row g-3">
                                     <div class="col-md-6">
                                         <label class="form-label-mh">Check-In Date <span style="color:var(--error-500);">*</span></label>
-                                        <input type="date" id="start_date_day" name="start_date_day" onchange="syncStartDate()" class="form-control-mh">
+                                        <input type="date" id="start_date_day" name="start_date_day" onchange="syncStartDate()" class="form-control-mh" min="<?php echo date('Y-m-d', strtotime('+1 day')); ?>">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label-mh">Check-Out Date <span style="color:var(--error-500);">*</span></label>
-                                        <input type="date" id="end_date" name="end_date" onchange="updateTotal()" class="form-control-mh">
+                                        <input type="date" id="end_date" name="end_date" onchange="updateTotal()" class="form-control-mh" min="<?php echo date('Y-m-d', strtotime('+2 day')); ?>">
                                     </div>
                                 </div>
                             </div>

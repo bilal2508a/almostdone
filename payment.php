@@ -125,7 +125,7 @@ include __DIR__ . '/includes/header.php';
                     <div class="card" style="border:none;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:1.5rem;margin-bottom:1.5rem;">
                         <h5 style="color:#0f172a;font-weight:700;margin:0 0 1rem;"><i class="bi bi-credit-card" style="color:#0ea5e9;"></i> Payment Method</h5>
                         <div style="display:flex;flex-direction:column;gap:0.75rem;">
-                            <label style="display:flex;align-items:center;gap:0.75rem;padding:1rem;border:2px solid #0ea5e9;border-radius:12px;cursor:pointer;background:#f0f9ff;">
+                            <label class="payment-option" data-method="card" style="display:flex;align-items:center;gap:0.75rem;padding:1rem;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all 0.2s;">
                                 <input type="radio" name="payment_method" value="card" checked style="accent-color:#0ea5e9;">
                                 <div style="width:40px;height:40px;border-radius:10px;background:#0ea5e9;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">
                                     <i class="bi bi-credit-card-2-front"></i>
@@ -135,7 +135,7 @@ include __DIR__ . '/includes/header.php';
                                     <div style="color:#64748b;font-size:0.85rem;">Visa, Mastercard, UnionPay</div>
                                 </div>
                             </label>
-                            <label style="display:flex;align-items:center;gap:0.75rem;padding:1rem;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;">
+                            <label class="payment-option" data-method="wallet" style="display:flex;align-items:center;gap:0.75rem;padding:1rem;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all 0.2s;">
                                 <input type="radio" name="payment_method" value="wallet" style="accent-color:#0ea5e9;">
                                 <div style="width:40px;height:40px;border-radius:10px;background:#14b8a6;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">
                                     <i class="bi bi-wallet2"></i>
@@ -145,7 +145,7 @@ include __DIR__ . '/includes/header.php';
                                     <div style="color:#64748b;font-size:0.85rem;">JazzCash, EasyPaisa, SadaPay</div>
                                 </div>
                             </label>
-                            <label style="display:flex;align-items:center;gap:0.75rem;padding:1rem;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;">
+                            <label class="payment-option" data-method="bank" style="display:flex;align-items:center;gap:0.75rem;padding:1rem;border:2px solid #e2e8f0;border-radius:12px;cursor:pointer;transition:all 0.2s;">
                                 <input type="radio" name="payment_method" value="bank" style="accent-color:#0ea5e9;">
                                 <div style="width:40px;height:40px;border-radius:10px;background:#64748b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem;">
                                     <i class="bi bi-bank"></i>
@@ -159,23 +159,77 @@ include __DIR__ . '/includes/header.php';
                     </div>
 
                     <!-- Card Details (shown for card method) -->
-                    <div class="card" style="border:none;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:1.5rem;margin-bottom:1.5rem;" id="cardDetails">
+                    <div class="card payment-details" id="cardDetails" style="border:none;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:1.5rem;margin-bottom:1.5rem;">
                         <h5 style="color:#0f172a;font-weight:700;margin:0 0 1rem;"><i class="bi bi-credit-card-fill" style="color:#0ea5e9;"></i> Card Details</h5>
                         <div style="margin-bottom:1rem;">
                             <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">Card Number</label>
-                            <input type="text" name="card_number" placeholder="1234 5678 9012 3456" class="form-control" style="border-radius:10px;" maxlength="19">
+                            <input type="text" name="card_number" id="cardNumber" placeholder="1234 5678 9012 3456" class="form-control" style="border-radius:10px;" maxlength="19" inputmode="numeric" pattern="[0-9 ]{19}">
                         </div>
                         <div class="row g-3">
                             <div class="col-6">
                                 <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">Expiry</label>
-                                <input type="text" name="card_expiry" placeholder="MM/YY" class="form-control" style="border-radius:10px;" maxlength="5">
+                                <input type="text" name="card_expiry" id="cardExpiry" placeholder="MM/YY" class="form-control" style="border-radius:10px;" maxlength="5" inputmode="numeric" pattern="(0[1-9]|1[0-2])/[0-9]{2}">
                             </div>
                             <div class="col-6">
                                 <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">CVV</label>
-                                <input type="text" name="card_cvv" placeholder="123" class="form-control" style="border-radius:10px;" maxlength="4">
+                                <input type="text" name="card_cvv" id="cardCvv" placeholder="123" class="form-control" style="border-radius:10px;" maxlength="4" inputmode="numeric" pattern="[0-9]{3,4}">
                             </div>
                         </div>
                         <small style="color:#64748b;display:block;margin-top:0.75rem;"><i class="bi bi-shield-check"></i> Your payment information is encrypted and secure.</small>
+                    </div>
+
+                    <!-- Wallet Details (shown for wallet method) -->
+                    <div class="card payment-details" id="walletDetails" style="display:none;border:none;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:1.5rem;margin-bottom:1.5rem;">
+                        <h5 style="color:#0f172a;font-weight:700;margin:0 0 1rem;"><i class="bi bi-wallet-fill" style="color:#14b8a6;"></i> Mobile Wallet Details</h5>
+                        <div style="margin-bottom:1rem;">
+                            <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">Wallet Provider</label>
+                            <select name="wallet_provider" class="form-control" style="border-radius:10px;">
+                                <option value="">Select provider</option>
+                                <option value="jazzcash">JazzCash</option>
+                                <option value="easypaisa">EasyPaisa</option>
+                                <option value="sadapay">SadaPay</option>
+                                <option value="nayapay">NayaPay</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:1rem;">
+                            <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">Mobile Number</label>
+                            <input type="tel" name="wallet_number" id="walletNumber" placeholder="03XX XXXXXXX" class="form-control" style="border-radius:10px;" maxlength="11" inputmode="numeric" pattern="03[0-9]{9}">
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">CNIC (last 6 digits)</label>
+                            <input type="text" name="wallet_cnic" id="walletCnic" placeholder="XXXXXX" class="form-control" style="border-radius:10px;" maxlength="6" inputmode="numeric" pattern="[0-9]{6}">
+                        </div>
+                        <small style="color:#64748b;display:block;margin-top:0.75rem;"><i class="bi bi-shield-check"></i> You will receive a confirmation SMS on this number.</small>
+                    </div>
+
+                    <!-- Bank Transfer Details (shown for bank method) -->
+                    <div class="card payment-details" id="bankDetails" style="display:none;border:none;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:1.5rem;margin-bottom:1.5rem;">
+                        <h5 style="color:#0f172a;font-weight:700;margin:0 0 1rem;"><i class="bi bi-bank2" style="color:#64748b;"></i> Bank Transfer Details</h5>
+                        <div style="margin-bottom:1rem;">
+                            <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">Select Bank</label>
+                            <select name="bank_name" class="form-control" style="border-radius:10px;">
+                                <option value="">Select bank</option>
+                                <option value="hbl">Habib Bank Limited (HBL)</option>
+                                <option value="ubl">United Bank Limited (UBL)</option>
+                                <option value="mcb">MCB Bank</option>
+                                <option value="meezan">Meezan Bank</option>
+                                <option value="alfalah">Bank Alfalah</option>
+                                <option value="standard">Standard Chartered</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom:1rem;">
+                            <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">Account Title</label>
+                            <input type="text" name="bank_account_title" placeholder="Account holder name" class="form-control" style="border-radius:10px;" maxlength="50">
+                        </div>
+                        <div style="margin-bottom:1rem;">
+                            <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">Account Number</label>
+                            <input type="text" name="bank_account_number" id="bankAccount" placeholder="Account number" class="form-control" style="border-radius:10px;" maxlength="20" inputmode="numeric" pattern="[0-9]{8,20}">
+                        </div>
+                        <div>
+                            <label style="font-size:0.85rem;font-weight:600;color:#64748b;margin-bottom:0.25rem;display:block;">Transaction Reference / Slip Number</label>
+                            <input type="text" name="bank_reference" id="bankRef" placeholder="Transfer reference number" class="form-control" style="border-radius:10px;" maxlength="15" inputmode="numeric" pattern="[A-Za-z0-9]{5,15}">
+                        </div>
+                        <small style="color:#64748b;display:block;margin-top:0.75rem;"><i class="bi bi-info-circle"></i> Upload your deposit slip in the next step for verification.</small>
                     </div>
 
                     <button type="submit" class="btn btn-primary btn-block" style="border-radius:12px;padding:1rem;font-size:1.1rem;font-weight:700;">
@@ -194,11 +248,95 @@ function applyCoupon(e) {
     if (!code) return;
     window.location.href = '<?php echo url("/payment.php?id=" . (int)$booking['id']); ?>&coupon=' + encodeURIComponent(code);
 }
+var detailSections = {
+    card: document.getElementById('cardDetails'),
+    wallet: document.getElementById('walletDetails'),
+    bank: document.getElementById('bankDetails')
+};
+var optionLabels = document.querySelectorAll('.payment-option');
+
+function highlightOption(method) {
+    optionLabels.forEach(function(label) {
+        if (label.dataset.method === method) {
+            label.style.borderColor = '#0ea5e9';
+            label.style.background = '#f0f9ff';
+        } else {
+            label.style.borderColor = '#e2e8f0';
+            label.style.background = 'transparent';
+        }
+    });
+}
+
+function showDetails(method) {
+    Object.keys(detailSections).forEach(function(key) {
+        if (detailSections[key]) detailSections[key].style.display = key === method ? 'block' : 'none';
+    });
+}
+
 document.querySelectorAll('input[name="payment_method"]').forEach(function(radio) {
     radio.addEventListener('change', function() {
-        document.getElementById('cardDetails').style.display = this.value === 'card' ? 'block' : 'none';
+        highlightOption(this.value);
+        showDetails(this.value);
     });
 });
+
+highlightOption('card');
+showDetails('card');
+
+var cardNumber = document.getElementById('cardNumber');
+if (cardNumber) {
+    cardNumber.addEventListener('input', function() {
+        var v = this.value.replace(/\D/g, '').slice(0, 16);
+        this.value = v.replace(/(.{4})/g, '$1 ').trim();
+    });
+}
+
+var cardExpiry = document.getElementById('cardExpiry');
+if (cardExpiry) {
+    cardExpiry.addEventListener('input', function() {
+        var v = this.value.replace(/\D/g, '').slice(0, 4);
+        if (v.length >= 3) {
+            this.value = v.slice(0, 2) + '/' + v.slice(2);
+        } else {
+            this.value = v;
+        }
+    });
+}
+
+var cardCvv = document.getElementById('cardCvv');
+if (cardCvv) {
+    cardCvv.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 4);
+    });
+}
+
+var walletNumber = document.getElementById('walletNumber');
+if (walletNumber) {
+    walletNumber.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 11);
+    });
+}
+
+var walletCnic = document.getElementById('walletCnic');
+if (walletCnic) {
+    walletCnic.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 6);
+    });
+}
+
+var bankAccount = document.getElementById('bankAccount');
+if (bankAccount) {
+    bankAccount.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 20);
+    });
+}
+
+var bankRef = document.getElementById('bankRef');
+if (bankRef) {
+    bankRef.addEventListener('input', function() {
+        this.value = this.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 15);
+    });
+}
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
