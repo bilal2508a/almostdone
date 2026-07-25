@@ -204,8 +204,17 @@ include __DIR__ . '/includes/header.php';
                             <input type="text" name="title" class="form-control-mh" value="<?php echo e($property['title']); ?>" required>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label-mh">Description <span style="color:#ef4444;">*</span></label>
-                            <textarea name="description" class="form-control-mh" rows="4" required><?php echo e($property['description']); ?></textarea>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label-mh mb-0">Description <span style="color:#ef4444;">*</span></label>
+                                <button type="button" class="btn btn-primary btn-sm" id="aiGenBtn" onclick="generateAIDescription()">
+                                    <i class="bi bi-stars"></i> AI Generate
+                                </button>
+                            </div>
+                            <textarea name="description" id="descriptionField" class="form-control-mh" rows="4" required><?php echo e($property['description']); ?></textarea>
+                            <div id="aiVariations" style="margin-top:0.75rem;display:none;">
+                                <p style="font-size:0.8rem;color:var(--slate-500);margin-bottom:0.5rem;">Generated descriptions (click to use):</p>
+                                <div id="aiVariationsList" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
+                            </div>
                         </div>
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -420,6 +429,66 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// AI Description Generator
+function generateAIDescription() {
+    var title = document.querySelector('input[name="title"]').value || '';
+    var type = document.querySelector('select[name="property_type"]').value || '';
+    var city = document.querySelector('input[name="city"]').value || '';
+    var area = document.querySelector('input[name="area"]').value || '';
+    var bedrooms = document.querySelector('input[name="bedrooms"]').value || '';
+    var bathrooms = document.querySelector('input[name="bathrooms"]').value || '';
+    var areaSqft = document.querySelector('input[name="area_sqft"]').value || '';
+    var price = document.querySelector('input[name="price"]').value || '';
+    var pricePeriod = document.querySelector('select[name="price_period"]').value || '';
+
+    var amenities = [];
+    document.querySelectorAll('.amenity-chip input:checked').forEach(function(cb) {
+        amenities.push(cb.parentElement.textContent.trim());
+    });
+
+    var btn = document.getElementById('aiGenBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Generating...';
+
+    fetch('<?php echo url("/api/ai-description.php"); ?>', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            title: title, type: type, city: city, area: area,
+            bedrooms: bedrooms, bathrooms: bathrooms, amenities: amenities,
+            area_sqft: areaSqft, price: price, price_period: pricePeriod
+        })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Regenerate';
+        if (data.descriptions && data.descriptions.length > 0) {
+            var container = document.getElementById('aiVariations');
+            var list = document.getElementById('aiVariationsList');
+            list.innerHTML = '';
+            data.descriptions.forEach(function(desc, i) {
+                var div = document.createElement('div');
+                div.style.cssText = 'padding:0.75rem;border:1px solid var(--slate-200);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.2s;background:var(--slate-50);';
+                div.innerHTML = '<div style="font-size:0.75rem;color:var(--primary-600);font-weight:600;margin-bottom:0.25rem;">Option ' + (i + 1) + '</div><div style="font-size:0.85rem;color:var(--slate-700);">' + desc + '</div>';
+                div.addEventListener('click', function() {
+                    document.getElementById('descriptionField').value = desc;
+                    container.style.display = 'none';
+                });
+                div.addEventListener('mouseenter', function() { div.style.borderColor = 'var(--primary-400)'; div.style.background = 'var(--primary-50)'; });
+                div.addEventListener('mouseleave', function() { div.style.borderColor = 'var(--slate-200)'; div.style.background = 'var(--slate-50)'; });
+                list.appendChild(div);
+            });
+            container.style.display = '';
+        }
+    })
+    .catch(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-stars"></i> AI Generate';
+        alert('Error generating description. Please try again.');
+    });
+}
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>

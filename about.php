@@ -111,37 +111,21 @@ include __DIR__ . '/includes/header.php';
             <h2 style="font-size:2rem;font-weight:800;color:#0f172a;letter-spacing:-0.02em;">Our Team</h2>
             <p style="color:#64748b;margin-top:0.5rem;">Meet the people behind Mehmaan Hub</p>
         </div>
-        <div class="row g-4">
-            <div class="col-md-6 col-lg-3">
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-6 col-lg-4">
                 <div class="card" style="border:none;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:2rem;text-align:center;">
-                    <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;margin:0 auto 1rem;">A</div>
-                    <h5 style="color:#0f172a;font-weight:700;margin:0;">Ahmed Khan</h5>
+                    <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#14b8a6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;margin:0 auto 1rem;">B</div>
+                    <h5 style="color:#0f172a;font-weight:700;margin:0;">Bilal Karim</h5>
                     <small style="color:#0ea5e9;font-weight:600;">CEO &amp; Founder</small>
-                    <p style="color:#64748b;font-size:0.85rem;margin-top:0.5rem;">Visionary leader with 10+ years in real estate.</p>
+                    <p style="color:#64748b;font-size:0.85rem;margin-top:0.5rem;">Visionary leader and the driving force behind Mehmaan Hub, dedicated to transforming Pakistan's rental market.</p>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-3">
+            <div class="col-md-6 col-lg-4">
                 <div class="card" style="border:none;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:2rem;text-align:center;">
-                    <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0ea5e9);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;margin:0 auto 1rem;">F</div>
-                    <h5 style="color:#0f172a;font-weight:700;margin:0;">Fatima Sheikh</h5>
-                    <small style="color:#0ea5e9;font-weight:600;">CTO</small>
-                    <p style="color:#64748b;font-size:0.85rem;margin-top:0.5rem;">Tech expert leading our platform development.</p>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="card" style="border:none;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:2rem;text-align:center;">
-                    <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#0ea5e9);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;margin:0 auto 1rem;">B</div>
-                    <h5 style="color:#0f172a;font-weight:700;margin:0;">Bilal Raza</h5>
-                    <small style="color:#0ea5e9;font-weight:600;">Head of Operations</small>
-                    <p style="color:#64748b;font-size:0.85rem;margin-top:0.5rem;">Ensures smooth operations and quality service.</p>
-                </div>
-            </div>
-            <div class="col-md-6 col-lg-3">
-                <div class="card" style="border:none;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:2rem;text-align:center;">
-                    <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#14b8a6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;margin:0 auto 1rem;">S</div>
-                    <h5 style="color:#0f172a;font-weight:700;margin:0;">Sara Ali</h5>
-                    <small style="color:#0ea5e9;font-weight:600;">Customer Success</small>
-                    <p style="color:#64748b;font-size:0.85rem;margin-top:0.5rem;">Dedicated to making your experience perfect.</p>
+                    <div style="width:96px;height:96px;border-radius:50%;background:linear-gradient(135deg,#14b8a6,#0ea5e9);color:#fff;display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;margin:0 auto 1rem;">M</div>
+                    <h5 style="color:#0f172a;font-weight:700;margin:0;">Mirza Ali</h5>
+                    <small style="color:#0ea5e9;font-weight:600;">Co-Founder</small>
+                    <p style="color:#64748b;font-size:0.85rem;margin-top:0.5rem;">Tech and product expert shaping the platform's experience and growth.</p>
                 </div>
             </div>
         </div>

@@ -291,11 +291,11 @@ require_once __DIR__ . '/includes/header.php';
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label-mh">Guest Email <span style="color:var(--error-500);">*</span></label>
-                                            <input type="email" id="guest_email" name="guest_email" placeholder="guest@email.com" required class="form-control-mh" autocomplete="off">
+                                            <input type="email" id="guest_email" name="guest_email" placeholder="guest@email.com" class="form-control-mh" autocomplete="off">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label-mh">Guest Phone <span style="color:var(--error-500);">*</span></label>
-                                            <input type="tel" id="guest_phone" name="guest_phone" placeholder="03XXXXXXXXX" maxlength="11" pattern="03[0-9]{9}" inputmode="numeric" required class="form-control-mh" autocomplete="off">
+                                            <input type="tel" id="guest_phone" name="guest_phone" placeholder="03XXXXXXXXX" maxlength="11" pattern="03[0-9]{9}" inputmode="numeric" class="form-control-mh" autocomplete="off">
                                         </div>
                                     </div>
                                     <div style="margin-top:0.75rem;padding:0.6rem 0.9rem;background:rgba(2,132,199,0.08);border-radius:8px;font-size:0.8rem;color:#0369a1;">
