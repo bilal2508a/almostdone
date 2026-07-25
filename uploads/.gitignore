@@ -1,0 +1,10 @@
+# Ignore everything in uploads by default
+*
+# But keep .htaccess and .gitignore
+!.htaccess
+!.gitignore
+# Keep the properties directory structure
+!properties/
+properties/*
+!properties/.htaccess
+!properties/.gitkeep

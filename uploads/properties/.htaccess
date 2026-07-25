@@ -1,0 +1,6 @@
+# Prevent script execution inside the properties upload directory.
+<FilesMatch "\.(php|php3|php4|php5|php7|phtml|phar|pl|py|cgi|asp|aspx|sh|exe)$">
+    Require all denied
+</FilesMatch>
+
+Options -ExecCGI -Indexes

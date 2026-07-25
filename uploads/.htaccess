@@ -1,0 +1,14 @@
+# Allow serving of image files only; block any script execution.
+<FilesMatch "\.(php|php3|php4|php5|php7|phtml|phar|pl|py|cgi|asp|aspx|sh|exe)$">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(jpg|jpeg|png|gif|webp|svg|ico|bmp)$">
+    Require all granted
+</FilesMatch>
+
+Options -ExecCGI -Indexes
+AddType image/jpeg jpg jpeg
+AddType image/png png
+AddType image/gif gif
+AddType image/webp webp

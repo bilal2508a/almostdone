@@ -212,7 +212,7 @@ include __DIR__ . '/includes/header.php';
                             </div>
                             <textarea name="description" id="descriptionField" class="form-control-mh" rows="4" required><?php echo e($property['description']); ?></textarea>
                             <div id="aiVariations" style="margin-top:0.75rem;display:none;">
-                                <p style="font-size:0.8rem;color:var(--slate-500);margin-bottom:0.5rem;">Generated descriptions (click to use):</p>
+                                <p style="font-size:0.8rem;color:var(--slate-500);margin-bottom:0.5rem;">More options (click to use):</p>
                                 <div id="aiVariationsList" style="display:flex;flex-direction:column;gap:0.5rem;"></div>
                             </div>
                         </div>
@@ -379,8 +379,14 @@ include __DIR__ . '/includes/header.php';
                     </div>
                     <div class="card-body p-4">
                         <label class="form-label-mh">Upload New Images</label>
-                        <input type="file" name="images[]" class="form-control-mh" accept="image/*" multiple>
-                        <small style="color:#64748b;">Select multiple images to add to this property.</small>
+                        <div class="image-upload-area" onclick="document.getElementById('imageInput').click()" style="margin-bottom:0.75rem;">
+                            <i class="bi bi-cloud-arrow-up" style="font-size:2.5rem;color:var(--primary-500);"></i>
+                            <h6 style="color:var(--slate-900);font-weight:700;margin-top:0.5rem;">Click to upload images</h6>
+                            <p style="color:var(--slate-500);font-size:0.85rem;margin:0.25rem 0 0;">You can select multiple images.</p>
+                            <input type="file" name="images[]" id="imageInput" accept="image/*" multiple style="display:none;" onchange="previewImages(this)">
+                        </div>
+                        <div id="imagePreview" style="display:flex;flex-wrap:wrap;gap:0.75rem;"></div>
+                        <small style="color:#64748b;">New images will be added to this property.</small>
                     </div>
                 </div>
 
@@ -431,6 +437,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // AI Description Generator
+var aiGenCount = 0;
 function generateAIDescription() {
     var title = document.querySelector('input[name="title"]').value || '';
     var type = document.querySelector('select[name="property_type"]').value || '';
@@ -465,30 +472,84 @@ function generateAIDescription() {
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-arrow-repeat"></i> Regenerate';
         if (data.descriptions && data.descriptions.length > 0) {
+            // First time: auto-fill the textarea with the first description.
+            if (aiGenCount === 0) {
+                document.getElementById('descriptionField').value = data.descriptions[0];
+            }
+
+            // Show pickable options (skip the first one the first time, since it is already in the textarea).
             var container = document.getElementById('aiVariations');
             var list = document.getElementById('aiVariationsList');
             list.innerHTML = '';
-            data.descriptions.forEach(function(desc, i) {
-                var div = document.createElement('div');
-                div.style.cssText = 'padding:0.75rem;border:1px solid var(--slate-200);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.2s;background:var(--slate-50);';
-                div.innerHTML = '<div style="font-size:0.75rem;color:var(--primary-600);font-weight:600;margin-bottom:0.25rem;">Option ' + (i + 1) + '</div><div style="font-size:0.85rem;color:var(--slate-700);">' + desc + '</div>';
-                div.addEventListener('click', function() {
-                    document.getElementById('descriptionField').value = desc;
-                    container.style.display = 'none';
-                });
-                div.addEventListener('mouseenter', function() { div.style.borderColor = 'var(--primary-400)'; div.style.background = 'var(--primary-50)'; });
-                div.addEventListener('mouseleave', function() { div.style.borderColor = 'var(--slate-200)'; div.style.background = 'var(--slate-50)'; });
-                list.appendChild(div);
-            });
-            container.style.display = '';
+            var startIdx = (aiGenCount === 0) ? 1 : 0;
+            for (var i = startIdx; i < data.descriptions.length; i++) {
+                (function(desc, idx) {
+                    var div = document.createElement('div');
+                    div.style.cssText = 'padding:0.75rem;border:1px solid var(--slate-200);border-radius:var(--radius-sm);cursor:pointer;transition:all 0.2s;background:var(--slate-50);';
+                    div.innerHTML = '<div style="font-size:0.75rem;color:var(--primary-600);font-weight:600;margin-bottom:0.25rem;">Option ' + (idx + 1) + '</div><div style="font-size:0.85rem;color:var(--slate-700);">' + desc + '</div>';
+                    div.addEventListener('click', function() {
+                        document.getElementById('descriptionField').value = desc;
+                    });
+                    div.addEventListener('mouseenter', function() { div.style.borderColor = 'var(--primary-400)'; div.style.background = 'var(--primary-50)'; });
+                    div.addEventListener('mouseleave', function() { div.style.borderColor = 'var(--slate-200)'; div.style.background = 'var(--slate-50)'; });
+                    list.appendChild(div);
+                })(data.descriptions[i], i - startIdx);
+            }
+            if (list.children.length > 0) {
+                container.style.display = '';
+            }
+            aiGenCount++;
         }
     })
     .catch(function(err) {
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-stars"></i> AI Generate';
+        btn.innerHTML = aiGenCount === 0 ? '<i class="bi bi-stars"></i> AI Generate' : '<i class="bi bi-arrow-repeat"></i> Regenerate';
         alert('Error generating description. Please try again.');
     });
 }
+
+// Image preview with remove buttons (for newly added images)
+var selectedFiles = [];
+function previewImages(input) {
+    var preview = document.getElementById('imagePreview');
+    if (input.files) {
+        Array.prototype.forEach.call(input.files, function(file) {
+            selectedFiles.push(file);
+        });
+    }
+    renderPreview();
+    input.value = '';
+}
+function renderPreview() {
+    var preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    selectedFiles.forEach(function(file, i) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var div = document.createElement('div');
+            div.style.cssText = 'position:relative;width:100px;height:100px;border-radius:10px;overflow:hidden;box-shadow:0 4px 12px -2px rgba(0,0,0,0.15);';
+            div.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover;">' +
+                '<button type="button" onclick="removeImage(' + i + ')" style="position:absolute;top:4px;right:4px;background:rgba(239,68,68,0.9);color:#fff;border:none;border-radius:50%;width:22px;height:22px;font-size:0.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;"><i class="bi bi-x"></i></button>';
+            preview.appendChild(div);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+function removeImage(index) {
+    selectedFiles.splice(index, 1);
+    renderPreview();
+}
+document.addEventListener('DOMContentLoaded', function() {
+    var form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            var dt = new DataTransfer();
+            selectedFiles.forEach(function(f) { dt.items.add(f); });
+            var input = document.getElementById('imageInput');
+            if (input) input.files = dt.files;
+        });
+    }
+});
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
